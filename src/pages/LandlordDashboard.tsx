@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -204,6 +205,7 @@ export default function LandlordDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-gentle">
+      <BackButton />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

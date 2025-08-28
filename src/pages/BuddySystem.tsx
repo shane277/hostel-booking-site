@@ -1,10 +1,12 @@
 import React from 'react';
 import { HostelBuddySystem } from '../components/HostelBuddySystem';
 import { LoadingProverbs } from '../components/LoadingProverbs';
+import BackButton from '@/components/BackButton';
 
 const BuddySystem: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <BackButton />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, Home, Search, User, MessageCircle, Bell, LogOut, Users, Ghost, BarChart3 } from "lucide-react";
+import { Menu, X, Home, Search, User, MessageCircle, Bell, LogOut, Users, Ghost, BarChart3, Plus } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessaging } from '@/hooks/useMessaging';
@@ -38,7 +38,7 @@ const Navigation = () => {
             <a href="/personality-quiz" className="text-foreground hover:text-primary transition-colors font-medium">
               Quiz
             </a>
-            <a href="/landlords" className="text-foreground hover:text-primary transition-colors font-medium">
+            <a href="/list-property" className="text-foreground hover:text-primary transition-colors font-medium">
               List Property
             </a>
             <a href="/about" className="text-foreground hover:text-primary transition-colors font-medium">
@@ -89,7 +89,16 @@ const Navigation = () => {
                           <Link to="/landlord-dashboard">My Dashboard</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/landlord-dashboard">My Properties</Link>
+                          <Link to="/my-properties" className="flex items-center gap-2">
+                            <Home className="h-4 w-4" />
+                            My Properties
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/list-property" className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            List Property
+                          </Link>
                         </DropdownMenuItem>
                       </>
                     )}
@@ -156,7 +165,7 @@ const Navigation = () => {
                 <Ghost className="h-4 w-4" />
                 <span>Horror Stories</span>
               </a>
-              <a href="/landlords" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
+              <a href="/list-property" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
                 <User className="h-4 w-4" />
                 <span>List Property</span>
               </a>

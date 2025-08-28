@@ -29,6 +29,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  resendConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, userData: UserData) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/email-confirmation`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -114,15 +115,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
+      let errorMessage = error.message;
+      
+      // Provide more user-friendly error messages
+      if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead or use a different email.';
+      } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      }
+      
       toast({
         title: "Signup Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {
       toast({
-        title: "Check your email",
-        description: "We've sent you a confirmation link to verify your account.",
+        title: "Account Created Successfully! 🎉",
+        description: "Please check your email and click the confirmation link to activate your account.",
       });
     }
 
@@ -136,10 +148,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
+      let errorMessage = error.message;
+      
+      // Provide more user-friendly error messages
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please confirm your email address before signing in. Check your inbox for a confirmation link.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
+      }
+      
       toast({
         title: "Login Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Welcome back! 👋",
+        description: "You have successfully signed in to your account.",
       });
     }
 
@@ -184,6 +212,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const resendConfirmation = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/email-confirmation`
+      }
+    });
+
+    if (error) {
+      let errorMessage = error.message;
+      
+      if (error.message.includes('For security purposes')) {
+        errorMessage = 'Please wait a moment before requesting another confirmation email.';
+      } else if (error.message.includes('User not found')) {
+        errorMessage = 'No account found with this email address. Please sign up first.';
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Confirmation Email Sent! 📧",
+        description: "Please check your email for the new confirmation link.",
+      });
+    }
+
+    return { error };
+  };
+
   const value = {
     user,
     session,
@@ -192,7 +253,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    resetPassword
+    resetPassword,
+    resendConfirmation
   };
 
   return (

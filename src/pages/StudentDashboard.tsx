@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, MapPin, Home, User, Settings, CreditCard, Star, BarChart3, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import Navigation from '@/components/Navigation';
+import BackButton from '@/components/BackButton';
 import { Link } from 'react-router-dom';
 import { ReviewForm } from '@/components/ReviewForm';
 import { toast as sonnerToast } from 'sonner';
@@ -205,6 +206,7 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-gentle">
       <Navigation />
+      <BackButton />
       <div className="pt-16">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}

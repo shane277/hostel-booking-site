@@ -1,12 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Star, Users } from "lucide-react";
+import { ArrowRight, Shield, Star, Users, Brain, Sparkles, MessageSquare } from "lucide-react";
 import SearchBar from "./SearchBar";
 import heroImage from "../assets/hero-hostel.jpg";
 import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleSearchNavigation = (searchData: { location: string; moveInDate: string; occupancy: string }) => {
+    const params = new URLSearchParams();
+    if (searchData.location) params.set('location', searchData.location);
+    if (searchData.moveInDate) params.set('checkIn', searchData.moveInDate);
+    if (searchData.occupancy) params.set('roomType', searchData.occupancy);
+    
+    navigate(`/search?${params.toString()}`);
+  };
+  
   return (
     <div className="relative min-h-screen bg-gradient-hero overflow-hidden">
       {/* Background Image with Overlay */}
@@ -51,21 +62,31 @@ const HeroSection = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-slide-up">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-slide-up">
             {user ? (
               <>
-                <Button variant="hero" size="lg" className="text-lg px-8">
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  className="text-lg px-8"
+                  onClick={() => navigate('/search')}
+                >
                   Start Searching
                   <ArrowRight className="h-5 w-5" />
                 </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 bg-white/10 border-white text-white hover:bg-white hover:text-foreground">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 bg-white/10 border-white text-white hover:bg-white hover:text-foreground"
+                  onClick={() => navigate('/landlord-dashboard')}
+                >
                   List Your Hostel
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="hero" size="lg" className="text-lg px-8" asChild>
-                  <Link to="/auth">
+                  <Link to="/auth?mode=signup">
                     Get Started
                     <ArrowRight className="h-5 w-5" />
                   </Link>
@@ -79,9 +100,43 @@ const HeroSection = () => {
             )}
           </div>
 
+          {/* Feature Quick Actions */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/personality-quiz')}
+              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-foreground transition-all duration-200"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              Personality Quiz
+              <Sparkles className="h-3 w-3 ml-1" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/buddy-system')}
+              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-foreground transition-all duration-200"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Find Roommates
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/horror-stories')}
+              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-foreground transition-all duration-200"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Horror Stories
+            </Button>
+          </div>
+
           {/* Search Component */}
           <div className="max-w-5xl mx-auto">
-            <SearchBar />
+            <SearchBar onSearch={handleSearchNavigation} showQuickActions={false} />
           </div>
         </div>
       </div>

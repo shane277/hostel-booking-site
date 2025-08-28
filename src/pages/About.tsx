@@ -1,7 +1,9 @@
+import Navigation from "@/components/Navigation";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Users, Shield, Target, Award, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function About() {
   const values = [
@@ -57,8 +59,9 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       {/* Hero Section */}
-      <section className="bg-gradient-primary text-white py-20">
+      <section className="bg-gradient-primary text-white py-20 mt-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <Badge className="bg-white/20 text-white mb-6 px-4 py-2">
@@ -226,11 +229,11 @@ export default function About() {
             Whether you're a student looking for accommodation or a property owner, we're here to help
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-4">
-              Find a Hostel
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-4" asChild>
+              <Link to="/search">Find a Hostel</Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary">
-              List Your Property
+            <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary" asChild>
+              <Link to="/landlords">List Your Property</Link>
             </Button>
           </div>
         </div>

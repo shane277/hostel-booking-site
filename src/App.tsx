@@ -22,6 +22,24 @@ import PersonalityQuiz from "./pages/PersonalityQuiz";
 import BuddySystem from "./pages/BuddySystem";
 import HorrorStories from "./pages/HorrorStories";
 import AdminAnalyticsPage from "./pages/AdminAnalytics";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import ListProperty from "./pages/ListProperty";
+import AdvancedListProperty from "./pages/AdvancedListProperty";
+import AdvancedSearch from "./pages/AdvancedSearch";
+import DebugSearch from "./pages/DebugSearch";
+import FindHostels from "./pages/FindHostels";
+import PriceAlerts from "./pages/PriceAlerts";
+import HostelDetailNew from "./pages/HostelDetailNew";
+import Support from "./pages/Support";
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+import LandlordRoute from "./components/LandlordRoute";
+import ListPropertyGateway from "./pages/ListPropertyGateway";
+import MyProperties from "./pages/MyProperties";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +53,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/find-hostels" element={<Search />} />
+            <Route path="/advanced-search" element={<AdvancedSearch />} />
+            <Route path="/new-find-hostels" element={<FindHostels />} />
+            <Route path="/debug-search" element={<DebugSearch />} />
             <Route path="/dashboard" element={
               <ProtectedRoute requireAuth={true}>
                 <StudentDashboard />
@@ -50,7 +72,7 @@ const App = () => (
                 <Messages />
               </ProtectedRoute>
             } />
-            <Route path="/hostel/:id" element={<HostelDetail />} />
+            <Route path="/hostel-old/:id" element={<HostelDetail />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancelled" element={<PaymentCancelled />} />
             <Route path="/landlords" element={<Landlords />} />
@@ -67,10 +89,32 @@ const App = () => (
                 <AdminAnalyticsPage />
               </ProtectedRoute>
             } />
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/list-property" element={<ListPropertyGateway />} />
+            <Route path="/list-property-simple" element={<ListProperty />} />
+            <Route path="/list-property-advanced" element={<AdvancedListProperty />} />
+            <Route path="/my-properties" element={
+              <LandlordRoute fallbackPath="/list-property">
+                <MyProperties />
+              </LandlordRoute>
+            } />
+            <Route path="/price-alerts" element={<PriceAlerts />} />
+            <Route path="/hostel/:id" element={<HostelDetailNew />} />
             <Route path="/auth" element={
               <ProtectedRoute requireAuth={false}>
                 <Auth />
               </ProtectedRoute>
+            } />
+            {/* Hidden Admin Route - Not linked in navbar/footer */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

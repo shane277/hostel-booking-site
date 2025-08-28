@@ -4,7 +4,7 @@ import FeatureShowcase from "@/components/FeatureShowcase";
 import PopularHostels from "@/components/PopularHostels";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight, MessageCircle, Mail, Users, Ghost, FileText, Heart } from "lucide-react";
+import { CheckCircle, ArrowRight, MessageCircle, Mail, Users, Ghost, FileText, Heart, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -151,13 +151,22 @@ const Index = () => {
             Join thousands of Ghanaian students who trust HostelPadi for safe, affordable accommodation
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-lg px-8">
-              Get Started Now
-              <ArrowRight className="h-5 w-5" />
+            <Button variant="hero" size="lg" className="text-lg px-8" asChild>
+              <Link to="/auth?mode=signup">
+                Get Started Now
+                <ArrowRight className="h-5 w-5" />
+              </Link>
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 bg-white/10 border-white text-white hover:bg-white hover:text-foreground">
-              Questions? Chat with us
-              <MessageCircle className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg px-8 bg-white/10 border-white text-white hover:bg-white hover:text-foreground"
+              asChild
+            >
+              <Link to="/price-alerts">
+                Set up Price Alerts
+                <Bell className="h-5 w-5" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -203,16 +212,23 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-white/70">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Report Issue</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Emergency SOS</a></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Report Issue</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Emergency SOS</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-white/20 mt-12 pt-8 text-center text-white/70">
-            <p>&copy; 2024 HostelPadi. Made with ❤️ for Ghanaian students.</p>
+          <div className="border-t border-white/20 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-white/70">&copy; 2024 HostelPadi. Made with ❤️ for Ghanaian students.</p>
+              <div className="flex gap-6 text-white/70 text-sm">
+                <Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
+                <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

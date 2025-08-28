@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { Bell, X } from "lucide-react";
 import HostelCard from "./HostelCard";
 
 interface Hostel {
@@ -17,8 +26,17 @@ interface Hostel {
 }
 
 const PopularHostels = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [hostels, setHostels] = useState<Hostel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPriceAlert, setShowPriceAlert] = useState(false);
+  const [alertData, setAlertData] = useState({
+    location: '',
+    max_price: '',
+    hostel_type: '',
+    email: user?.email || ''
+  });
 
   useEffect(() => {
     fetchPopularHostels();
@@ -41,6 +59,56 @@ const PopularHostels = () => {
       console.error('Error fetching popular hostels:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePriceAlertSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to set up price alerts.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // For now, we'll just store this in localStorage as a simple implementation
+      // In a real app, you'd want to store this in Supabase with a proper table
+      const existingAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+      const newAlert = {
+        id: Date.now(),
+        user_id: user.id,
+        ...alertData,
+        max_price: parseInt(alertData.max_price),
+        created_at: new Date().toISOString()
+      };
+      
+      existingAlerts.push(newAlert);
+      localStorage.setItem('priceAlerts', JSON.stringify(existingAlerts));
+
+      toast({
+        title: "Price Alert Set! 🔔",
+        description: "We'll notify you when hostels matching your criteria become available.",
+      });
+
+      setShowPriceAlert(false);
+      setAlertData({
+        location: '',
+        max_price: '',
+        hostel_type: '',
+        email: user?.email || ''
+      });
+
+    } catch (error) {
+      console.error('Error setting price alert:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set price alert. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -93,15 +161,114 @@ const PopularHostels = () => {
             Can't find what you're looking for?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="text-primary hover:underline font-medium">
-              View All Hostels →
-            </button>
+            <Button variant="outline" asChild>
+              <Link to="/search">
+                View All Hostels →
+              </Link>
+            </Button>
             <span className="text-muted-foreground">or</span>
-            <button className="text-primary hover:underline font-medium">
+            <Button 
+              variant="outline"
+              onClick={() => setShowPriceAlert(true)}
+            >
+              <Bell className="h-4 w-4 mr-2" />
               Set Up Price Alerts
-            </button>
+            </Button>
           </div>
         </div>
+
+        {/* Price Alert Modal */}
+        {showPriceAlert && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Set Up Price Alert
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPriceAlert(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePriceAlertSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="alert-location">Location/University</Label>
+                    <Input
+                      id="alert-location"
+                      value={alertData.location}
+                      onChange={(e) => setAlertData(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="e.g., University of Ghana"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="alert-price">Maximum Price (₵)</Label>
+                    <Input
+                      id="alert-price"
+                      type="number"
+                      value={alertData.max_price}
+                      onChange={(e) => setAlertData(prev => ({ ...prev, max_price: e.target.value }))}
+                      placeholder="e.g., 1500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="alert-type">Hostel Type (Optional)</Label>
+                    <Select
+                      value={alertData.hostel_type}
+                      onValueChange={(value) => setAlertData(prev => ({ ...prev, hostel_type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any type</SelectItem>
+                        <SelectItem value="male">Male Only</SelectItem>
+                        <SelectItem value="female">Female Only</SelectItem>
+                        <SelectItem value="mixed">Mixed Gender</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="alert-email">Email for Notifications</Label>
+                    <Input
+                      id="alert-email"
+                      type="email"
+                      value={alertData.email}
+                      onChange={(e) => setAlertData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="your.email@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button type="submit" className="flex-1">
+                      Set Alert
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setShowPriceAlert(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </section>
   );

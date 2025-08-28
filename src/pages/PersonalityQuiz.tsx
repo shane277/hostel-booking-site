@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { HostelPersonalityQuiz } from '../components/HostelPersonalityQuiz';
 import { LoadingProverbs } from '../components/LoadingProverbs';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 
 interface QuizResult {
   personality: string;
@@ -203,6 +204,7 @@ const PersonalityQuiz: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+      <BackButton />
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
