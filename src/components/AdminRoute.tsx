@@ -24,15 +24,15 @@ export default function AdminRoute({ children }: AdminRouteProps) {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', user.id)
+          .select('user_type')
+          .eq('user_id', user.id)
           .single();
 
         if (error) {
           console.error('Error fetching user profile:', error);
           setIsAdmin(false);
         } else {
-          setIsAdmin(profile?.role === 'admin');
+          setIsAdmin(profile?.user_type === 'admin');
         }
       } catch (error) {
         console.error('Error checking admin role:', error);

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingProverbs } from '@/components/LoadingProverbs';
 import ResendConfirmation from '@/components/ResendConfirmation';
+import DevEmailBypass from '@/components/DevEmailBypass';
 
 const EmailConfirmation: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -167,6 +168,9 @@ const EmailConfirmation: React.FC = () => {
               }}
             />
           )}
+
+          {/* Development bypass - only shows in development mode */}
+          <DevEmailBypass />
         </div>
       </div>
     );

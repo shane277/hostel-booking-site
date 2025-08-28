@@ -163,7 +163,7 @@ const Index = () => {
               className="text-lg px-8 bg-white/10 border-white text-white hover:bg-white hover:text-foreground"
               asChild
             >
-              <Link to="/price-alerts">
+              <Link to="/price-alerts" className="flex items-center gap-2">
                 Set up Price Alerts
                 <Bell className="h-5 w-5" />
               </Link>

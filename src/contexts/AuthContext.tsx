@@ -245,6 +245,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const getDashboardUrl = () => {
+    if (!profile?.user_type) return '/';
+    
+    switch (profile.user_type) {
+      case 'student':
+        return '/student-dashboard';
+      case 'landlord':
+        return '/landlord-dashboard';
+      case 'admin':
+        return '/admin-dashboard';
+      default:
+        return '/';
+    }
+  };
+
   const value = {
     user,
     session,
@@ -254,7 +269,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     resetPassword,
-    resendConfirmation
+    resendConfirmation,
+    getDashboardUrl
   };
 
   return (

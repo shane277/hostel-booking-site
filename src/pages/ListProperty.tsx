@@ -190,30 +190,93 @@ const ListProperty = () => {
       }
 
       // Insert hostel data
+      const totalRooms = (parseInt(formData.male_rooms) || 0) + (parseInt(formData.female_rooms) || 0);
+      const availableRooms = totalRooms; // Initially all rooms are available
+      
       const { data: hostelData, error } = await supabase
-        .from('hostels_new')
+        .from('hostels')
         .insert([{
           name: formData.name,
-          location: formData.location,
-          university: formData.university,
-          male_rooms: parseInt(formData.male_rooms) || 0,
-          female_rooms: parseInt(formData.female_rooms) || 0,
-          beds_per_room: parseInt(formData.beds_per_room),
-          price_per_bed: parseFloat(formData.price_per_bed),
-          duration_type: formData.duration_type,
-          facilities: formData.facilities,
+          address: formData.location,
+          city: formData.location.split(',')[0]?.trim() || formData.location,
+          region: formData.location.split(',')[1]?.trim() || 'Greater Accra',
           description: formData.description,
+          hostel_type: 'mixed' as const, // Default to mixed since we have both male and female rooms
+          price_per_semester: parseFloat(formData.price_per_bed) * 
+            (formData.duration_type === 'semester' ? 1 : 
+             formData.duration_type === 'academic_year' ? 2 : 1),
+          price_per_academic_year: parseFloat(formData.price_per_bed) * 
+            (formData.duration_type === 'academic_year' ? 1 : 
+             formData.duration_type === 'semester' ? 2 : 2),
+          total_rooms: totalRooms,
+          available_rooms: availableRooms,
+          amenities: formData.facilities,
           images: imageUrls,
-          created_by: user.id
+          landlord_id: user.id,
+          is_active: true,
+          is_verified: false // Will need admin verification
         }])
         .select()
         .single();
 
       if (error) throw error;
 
+      // Create individual rooms for the hostel
+      const roomsToCreate = [];
+      const maleRooms = parseInt(formData.male_rooms) || 0;
+      const femaleRooms = parseInt(formData.female_rooms) || 0;
+      const bedsPerRoom = parseInt(formData.beds_per_room);
+      const pricePerBed = parseFloat(formData.price_per_bed);
+      
+      // Create male rooms
+      for (let i = 1; i <= maleRooms; i++) {
+        roomsToCreate.push({
+          hostel_id: hostelData.id,
+          room_number: `M${i.toString().padStart(2, '0')}`,
+          room_type: 'male' as const,
+          capacity: bedsPerRoom,
+          price_per_semester: pricePerBed * (formData.duration_type === 'semester' ? 1 : 
+                                           formData.duration_type === 'academic_year' ? 2 : 1),
+          price_per_academic_year: pricePerBed * (formData.duration_type === 'academic_year' ? 1 : 
+                                                formData.duration_type === 'semester' ? 2 : 2),
+          is_available: true,
+          occupied: 0,
+          amenities: formData.facilities
+        });
+      }
+      
+      // Create female rooms
+      for (let i = 1; i <= femaleRooms; i++) {
+        roomsToCreate.push({
+          hostel_id: hostelData.id,
+          room_number: `F${i.toString().padStart(2, '0')}`,
+          room_type: 'female' as const,
+          capacity: bedsPerRoom,
+          price_per_semester: pricePerBed * (formData.duration_type === 'semester' ? 1 : 
+                                           formData.duration_type === 'academic_year' ? 2 : 1),
+          price_per_academic_year: pricePerBed * (formData.duration_type === 'academic_year' ? 1 : 
+                                                formData.duration_type === 'semester' ? 2 : 2),
+          is_available: true,
+          occupied: 0,
+          amenities: formData.facilities
+        });
+      }
+      
+      // Insert all rooms
+      if (roomsToCreate.length > 0) {
+        const { error: roomsError } = await supabase
+          .from('rooms')
+          .insert(roomsToCreate);
+        
+        if (roomsError) {
+          console.error('Error creating rooms:', roomsError);
+          // Don't throw here, hostel was created successfully
+        }
+      }
+
       toast({
         title: "Property Listed Successfully! 🎉",
-        description: "Your hostel has been added to our platform.",
+        description: `Your hostel has been added with ${totalRooms} rooms.`,
       });
 
       // Redirect to the hostel detail page
@@ -221,9 +284,10 @@ const ListProperty = () => {
 
     } catch (error) {
       console.error('Error listing property:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "Failed to list property. Please try again.",
+        description: `Failed to list property: ${errorMessage}. Please try again.`,
         variant: "destructive"
       });
     } finally {

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, ArrowLeft, Mail, Sparkles, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import ResendConfirmation from '@/components/ResendConfirmation';
 
+
 const institutions = [
   { value: 'university_of_ghana', label: 'University of Ghana' },
   { value: 'kwame_nkrumah_university', label: 'Kwame Nkrumah University of Science and Technology' },
@@ -51,7 +52,7 @@ const countryCodes = [
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, signIn, signUp, resetPassword } = useAuth();
+  const { user, signIn, signUp, resetPassword, getDashboardUrl } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
@@ -82,9 +83,11 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Use role-based redirection
+      const dashboardUrl = getDashboardUrl();
+      navigate(dashboardUrl);
     }
-  }, [user, navigate]);
+  }, [user, navigate, getDashboardUrl]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -102,7 +105,7 @@ export default function Auth() {
     const { error } = await signIn(loginEmail, loginPassword);
     
     if (!error) {
-      navigate('/');
+      // Role-based redirection will happen via useEffect when user state updates
     }
     
     setLoading(false);
@@ -564,6 +567,7 @@ export default function Auth() {
             }}
           />
         )}
+
       </div>
     </div>
   );

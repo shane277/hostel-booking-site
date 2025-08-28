@@ -59,10 +59,36 @@ const PriceAlerts = () => {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        
+        // If table doesn't exist, fall back to localStorage
+        const errorMessage = error instanceof Error ? error.message : '';
+        if (errorMessage.includes('relation "price_alerts" does not exist') || 
+            errorMessage.includes('table') || 
+            error.code === '42P01') {
+          
+          console.log('Falling back to localStorage for alerts');
+          const localAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+          const userAlerts = localAlerts.filter((alert: any) => alert.user_id === user?.id);
+          setAlerts(userAlerts);
+          return;
+        }
+        throw error;
+      }
+      
       setAlerts(data || []);
     } catch (error) {
       console.error('Error fetching alerts:', error);
+      // Try localStorage as final fallback
+      try {
+        const localAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+        const userAlerts = localAlerts.filter((alert: any) => alert.user_id === user?.id);
+        setAlerts(userAlerts);
+      } catch (localError) {
+        console.error('Error reading from localStorage:', localError);
+        setAlerts([]);
+      }
     }
   };
 
@@ -100,20 +126,56 @@ const PriceAlerts = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('price_alerts')
         .insert([{
           user_id: user.id,
           university: formData.university,
           max_price: price
-        }]);
+        }])
+        .select();
 
-      if (error) throw error;
-
-      toast({
-        title: "Price Alert Created! 🔔",
-        description: "We'll notify you when hostels matching your criteria become available.",
-      });
+      if (error) {
+        console.error('Database error:', error);
+        
+        // If table doesn't exist, fall back to localStorage
+        const errorMessage = error instanceof Error ? error.message : '';
+        if (errorMessage.includes('relation "price_alerts" does not exist') || 
+            errorMessage.includes('table') || 
+            error.code === '42P01') {
+          
+          console.log('Falling back to localStorage storage');
+          
+          // Store in localStorage as fallback
+          const existingAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+          const newAlert = {
+            id: `local_${Date.now()}`,
+            user_id: user.id,
+            university: formData.university,
+            max_price: price,
+            created_at: new Date().toISOString()
+          };
+          
+          existingAlerts.push(newAlert);
+          localStorage.setItem('priceAlerts', JSON.stringify(existingAlerts));
+          
+          toast({
+            title: "Price Alert Created! 🔔",
+            description: "Alert saved locally. We'll notify you when hostels matching your criteria become available.",
+          });
+          
+          // Add to local state
+          setAlerts(prev => [newAlert, ...prev]);
+          
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Price Alert Created! 🔔",
+          description: "We'll notify you when hostels matching your criteria become available.",
+        });
+      }
 
       // Reset form and refresh alerts
       setFormData({
@@ -122,13 +184,18 @@ const PriceAlerts = () => {
         email: user?.email || ''
       });
       setShowForm(false);
-      fetchAlerts();
+      
+      // Only fetch from database if it worked
+      if (!error) {
+        fetchAlerts();
+      }
 
     } catch (error) {
       console.error('Error creating alert:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "Failed to create price alert. Please try again.",
+        description: `Failed to create price alert: ${errorMessage}. Please try again or contact support.`,
         variant: "destructive"
       });
     } finally {
@@ -138,12 +205,52 @@ const PriceAlerts = () => {
 
   const handleDeleteAlert = async (alertId: string) => {
     try {
+      // Check if it's a local alert
+      if (alertId.startsWith('local_')) {
+        // Handle localStorage deletion
+        const localAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+        const updatedAlerts = localAlerts.filter((alert: any) => alert.id !== alertId);
+        localStorage.setItem('priceAlerts', JSON.stringify(updatedAlerts));
+        
+        // Update local state
+        setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        
+        toast({
+          title: "Alert Deleted",
+          description: "Price alert has been removed.",
+        });
+        return;
+      }
+
+      // Try database deletion
       const { error } = await supabase
         .from('price_alerts')
         .delete()
         .eq('id', alertId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        
+        // If table doesn't exist, try localStorage
+        const errorMessage = error instanceof Error ? error.message : '';
+        if (errorMessage.includes('relation "price_alerts" does not exist') || 
+            errorMessage.includes('table') || 
+            error.code === '42P01') {
+          
+          const localAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+          const updatedAlerts = localAlerts.filter((alert: any) => alert.id !== alertId);
+          localStorage.setItem('priceAlerts', JSON.stringify(updatedAlerts));
+          
+          setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+          
+          toast({
+            title: "Alert Deleted",
+            description: "Price alert has been removed.",
+          });
+          return;
+        }
+        throw error;
+      }
 
       toast({
         title: "Alert Deleted",

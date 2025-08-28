@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, Home, Search, User, MessageCircle, Bell, LogOut, Users, Ghost, BarChart3, Plus } from "lucide-react";
+import { Menu, X, Home, Search, User, MessageCircle, Bell, LogOut, Users, Ghost, BarChart3, Plus, LayoutDashboard } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessaging } from '@/hooks/useMessaging';
@@ -10,8 +10,10 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
-  const { unreadCount } = useMessaging();
+  const { user, profile, signOut, getDashboardUrl } = useAuth();
+  // Temporarily disable messaging to prevent login errors
+  // const { unreadCount } = useMessaging();
+  const unreadCount = 0; // Placeholder until messaging is properly implemented
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/50">
@@ -29,21 +31,36 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="/" className="text-foreground hover:text-primary transition-colors font-medium">
-              Home
-            </a>
-            <a href="/search" className="text-foreground hover:text-primary transition-colors font-medium">
-              Find Hostels
-            </a>
-            <a href="/personality-quiz" className="text-foreground hover:text-primary transition-colors font-medium">
-              Quiz
-            </a>
-            <a href="/list-property" className="text-foreground hover:text-primary transition-colors font-medium">
+            {/* Show Home, Find Hostels, and Quiz only for non-landlords */}
+            {(!user || profile?.user_type !== 'landlord') && (
+              <>
+                <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Home
+                </Link>
+                <Link to="/search" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Find Hostels
+                </Link>
+              </>
+            )}
+            {user && (
+              <Link 
+                to={getDashboardUrl()} 
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Dashboard
+              </Link>
+            )}
+            {(!user || profile?.user_type !== 'landlord') && (
+              <Link to="/personality-quiz" className="text-foreground hover:text-primary transition-colors font-medium">
+                Quiz
+              </Link>
+            )}
+            <Link to="/list-property" className="text-foreground hover:text-primary transition-colors font-medium">
               List Property
-            </a>
-            <a href="/about" className="text-foreground hover:text-primary transition-colors font-medium">
+            </Link>
+            <Link to="/about" className="text-foreground hover:text-primary transition-colors font-medium">
               About
-            </a>
+            </Link>
           </div>
 
           {/* Auth Buttons */}
@@ -149,30 +166,47 @@ const Navigation = () => {
         {isOpen && (
           <div className="md:hidden py-4 border-t border-border/50 bg-white/95 backdrop-blur-md">
             <div className="space-y-4">
-              <a href="/" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </a>
-              <a href="/search" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
-                <Search className="h-4 w-4" />
-                <span>Find Hostels</span>
-              </a>
-              <a href="/personality-quiz" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
-                <User className="h-4 w-4" />
-                <span>Personality Quiz</span>
-              </a>
-              <a href="/horror-stories" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
+              {/* Show Home, Find Hostels, and Quiz only for non-landlords */}
+              {(!user || profile?.user_type !== 'landlord') && (
+                <>
+                  <Link to="/" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
+                    <Home className="h-4 w-4" />
+                    <span>Home</span>
+                  </Link>
+                  <Link to="/search" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
+                    <Search className="h-4 w-4" />
+                    <span>Find Hostels</span>
+                  </Link>
+                </>
+              )}
+              {user && (
+                <Link 
+                  to={getDashboardUrl()} 
+                  className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              )}
+              {(!user || profile?.user_type !== 'landlord') && (
+                <Link to="/personality-quiz" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
+                  <User className="h-4 w-4" />
+                  <span>Personality Quiz</span>
+                </Link>
+              )}
+              <Link to="/horror-stories" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
                 <Ghost className="h-4 w-4" />
                 <span>Horror Stories</span>
-              </a>
-              <a href="/list-property" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
+              </Link>
+              <Link to="/list-property" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
                 <User className="h-4 w-4" />
                 <span>List Property</span>
-              </a>
-              <a href="/about" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2">
+              </Link>
+              <Link to="/about" className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors py-2" onClick={() => setIsOpen(false)}>
                 <MessageCircle className="h-4 w-4" />
                 <span>About</span>
-              </a>
+              </Link>
               <div className="pt-4 space-y-2">
                 {user ? (
                   <>

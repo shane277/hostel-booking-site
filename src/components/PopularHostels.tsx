@@ -42,6 +42,25 @@ const PopularHostels = () => {
     fetchPopularHostels();
   }, []);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showPriceAlert) {
+        setShowPriceAlert(false);
+      }
+    };
+
+    if (showPriceAlert) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showPriceAlert]);
+
   const fetchPopularHostels = async () => {
     try {
       const { data, error } = await supabase
@@ -74,25 +93,64 @@ const PopularHostels = () => {
       return;
     }
 
-    try {
-      // For now, we'll just store this in localStorage as a simple implementation
-      // In a real app, you'd want to store this in Supabase with a proper table
-      const existingAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
-      const newAlert = {
-        id: Date.now(),
-        user_id: user.id,
-        ...alertData,
-        max_price: parseInt(alertData.max_price),
-        created_at: new Date().toISOString()
-      };
-      
-      existingAlerts.push(newAlert);
-      localStorage.setItem('priceAlerts', JSON.stringify(existingAlerts));
-
+    if (!alertData.location || !alertData.max_price) {
       toast({
-        title: "Price Alert Set! 🔔",
-        description: "We'll notify you when hostels matching your criteria become available.",
+        title: "Missing Information",
+        description: "Please fill in location and maximum price.",
+        variant: "destructive"
       });
+      return;
+    }
+
+    const price = parseFloat(alertData.max_price);
+    if (price <= 0 || isNaN(price)) {
+      toast({
+        title: "Invalid Price",
+        description: "Maximum price must be a valid number greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Try database first, then fallback to localStorage
+      try {
+        const { data, error } = await supabase
+          .from('price_alerts')
+          .insert([{
+            user_id: user.id,
+            university: alertData.location,
+            max_price: price
+          }])
+          .select();
+
+        if (error) {
+          throw error;
+        }
+        toast({
+          title: "Price Alert Set! 🔔",
+          description: "We'll notify you when hostels matching your criteria become available.",
+        });
+
+      } catch (dbError) {
+        // Fallback to localStorage
+        const existingAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+        const newAlert = {
+          id: `local_${Date.now()}`,
+          user_id: user.id,
+          university: alertData.location,
+          max_price: price,
+          created_at: new Date().toISOString()
+        };
+        
+        existingAlerts.push(newAlert);
+        localStorage.setItem('priceAlerts', JSON.stringify(existingAlerts));
+
+        toast({
+          title: "Price Alert Set! 🔔",
+          description: "Alert saved locally. We'll notify you when hostels matching your criteria become available.",
+        });
+      }
 
       setShowPriceAlert(false);
       setAlertData({
@@ -103,10 +161,11 @@ const PopularHostels = () => {
       });
 
     } catch (error) {
-      console.error('Error setting price alert:', error);
+      console.error('Unexpected error setting price alert:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "Failed to set price alert. Please try again.",
+        description: `Failed to set price alert: ${errorMessage}. Please try again.`,
         variant: "destructive"
       });
     }
@@ -170,22 +229,33 @@ const PopularHostels = () => {
             <Button 
               variant="outline"
               onClick={() => setShowPriceAlert(true)}
+              className="flex items-center gap-2"
             >
-              <Bell className="h-4 w-4 mr-2" />
-              Set Up Price Alerts
+              <Bell className="h-4 w-4" />
+              Quick Price Alert
             </Button>
           </div>
         </div>
 
         {/* Price Alert Modal */}
         {showPriceAlert && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md">
+          <div 
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999]"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPriceAlert(false);
+              }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="price-alert-title"
+          >
+            <Card className="w-full max-w-md bg-white shadow-2xl border-2 border-gray-200">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle id="price-alert-title" className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
-                    Set Up Price Alert
+                    Quick Price Alert
                   </CardTitle>
                   <Button
                     variant="ghost"

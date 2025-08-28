@@ -26,14 +26,14 @@ export default function ListPropertyGateway() {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', user.id)
+          .select('user_type')
+          .eq('user_id', user.id)
           .single();
 
         if (error) {
           console.error('Error fetching user profile:', error);
         } else {
-          setUserRole(profile?.role || null);
+          setUserRole(profile?.user_type || null);
         }
       } catch (error) {
         console.error('Error fetching user role:', error);

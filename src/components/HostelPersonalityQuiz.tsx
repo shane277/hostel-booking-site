@@ -246,10 +246,10 @@ export const HostelPersonalityQuiz: React.FC<HostelPersonalityQuizProps> = ({ on
               <Button
                 key={index}
                 variant="outline"
-                className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-primary/5"
+                className="group h-auto p-4 flex flex-col items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
                 onClick={() => handleAnswer(question.id, option.value)}
               >
-                <div className="text-primary">{option.icon}</div>
+                <div className="text-primary group-hover:text-primary-foreground transition-colors">{option.icon}</div>
                 <span className="text-sm">{option.text}</span>
               </Button>
             ))}

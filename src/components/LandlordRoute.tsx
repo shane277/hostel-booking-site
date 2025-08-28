@@ -25,15 +25,15 @@ export default function LandlordRoute({ children, fallbackPath = "/" }: Landlord
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', user.id)
+          .select('user_type')
+          .eq('user_id', user.id)
           .single();
 
         if (error) {
           console.error('Error fetching user profile:', error);
           setIsLandlord(false);
         } else {
-          setIsLandlord(profile?.role === 'landlord' || profile?.role === 'admin');
+          setIsLandlord(profile?.user_type === 'landlord' || profile?.user_type === 'admin');
         }
       } catch (error) {
         console.error('Error checking landlord role:', error);

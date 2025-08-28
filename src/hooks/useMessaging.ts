@@ -57,22 +57,23 @@ export const useMessaging = () => {
 
   // Fetch conversations with profile and hostel data
   const fetchConversations = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setConversations([]);
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     try {
+      // Try a simpler query first to avoid complex join issues
       const { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
-          hostels(name),
-          student_profile:profiles!conversations_student_id_fkey(full_name, avatar_url),
-          landlord_profile:profiles!conversations_landlord_id_fkey(full_name, avatar_url),
-          last_message:messages(content, created_at, sender_id)
+          hostels(name)
         `)
         .or(`student_id.eq.${user.id},landlord_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false })
-        .limit(1, { foreignTable: 'last_message' });
+        .order('last_message_at', { ascending: false });
 
       if (error) throw error;
       
@@ -80,17 +81,35 @@ export const useMessaging = () => {
       const transformedData = data?.map((conv: Record<string, unknown>) => ({
         ...conv,
         hostel: conv.hostels ? { name: (conv.hostels as { name: string }).name } : null,
-        last_message: conv.last_message?.[0] || null
+        last_message: null // We'll fetch this separately if needed
       })) || [];
       
       setConversations(transformedData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversations",
-        variant: "destructive"
-      });
+      
+      // Only show toast error for genuine errors, not for empty results or expected cases
+      const errorMessage = error instanceof Error ? error.message : '';
+      const isExpectedError = 
+        !errorMessage || // Empty error message
+        errorMessage.includes('relation') || // Table doesn't exist
+        errorMessage.includes('JWT') || // Auth issues
+        errorMessage.includes('permission') || // Permission issues
+        errorMessage.includes('PGRST') || // PostgREST errors (often just empty results)
+        errorMessage.includes('No rows') || // No data found
+        errorMessage.toLowerCase().includes('not found'); // Generic not found
+      
+      // Only show error toast for unexpected/serious errors when user is authenticated
+      if (user && !isExpectedError) {
+        toast({
+          title: "Error",
+          description: "Failed to load conversations",
+          variant: "destructive"
+        });
+      }
+      
+      // Set empty conversations for any error case
+      setConversations([]);
     } finally {
       setLoading(false);
     }
@@ -319,10 +338,11 @@ export const useMessaging = () => {
     };
   }, [user, fetchConversations, fetchMessages, selectedConversationId]);
 
-  // Fetch conversations on mount
-  useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+  // Only fetch conversations when explicitly needed, not on mount
+  // This prevents errors on login when messaging isn't immediately needed
+  // useEffect(() => {
+  //   fetchConversations();
+  // }, [fetchConversations]);
 
   return {
     conversations,

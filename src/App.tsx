@@ -40,6 +40,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import LandlordRoute from "./components/LandlordRoute";
 import ListPropertyGateway from "./pages/ListPropertyGateway";
 import MyProperties from "./pages/MyProperties";
+import RoomChat from "./pages/RoomChat";
 
 const queryClient = new QueryClient();
 
@@ -62,10 +63,15 @@ const App = () => (
                 <StudentDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/landlord-dashboard" element={
+            <Route path="/student-dashboard" element={
               <ProtectedRoute requireAuth={true}>
-                <LandlordDashboard />
+                <StudentDashboard />
               </ProtectedRoute>
+            } />
+            <Route path="/landlord-dashboard" element={
+              <LandlordRoute fallbackPath="/auth">
+                <LandlordDashboard />
+              </LandlordRoute>
             } />
             <Route path="/messages" element={
               <ProtectedRoute requireAuth={true}>
@@ -81,6 +87,11 @@ const App = () => (
             <Route path="/buddy-system" element={
               <ProtectedRoute requireAuth={true}>
                 <BuddySystem />
+              </ProtectedRoute>
+            } />
+            <Route path="/room-chat/:roomId" element={
+              <ProtectedRoute requireAuth={true}>
+                <RoomChat />
               </ProtectedRoute>
             } />
             <Route path="/horror-stories" element={<HorrorStories />} />

@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, MapPin, Home, User, Settings, CreditCard, Star, BarChart3, Activity } from 'lucide-react';
+import { Calendar, Clock, MapPin, Home, User, Settings, CreditCard, Star, BarChart3, Activity, Users, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import Navigation from '@/components/Navigation';
 import BackButton from '@/components/BackButton';
@@ -20,6 +20,7 @@ import { ReviewForm } from '@/components/ReviewForm';
 import { toast as sonnerToast } from 'sonner';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import DashboardActivity from '@/components/DashboardActivity';
+import RoomChatList from '@/components/RoomChatList';
 
 interface Booking {
   id: string;
@@ -119,9 +120,28 @@ const StudentDashboard = () => {
     
     setUpdating(true);
     try {
+      // Ensure institution is a valid enum value or undefined
+      const validInstitutions = [
+        "university_of_ghana",
+        "kwame_nkrumah_university", 
+        "university_of_cape_coast",
+        "ghana_institute_of_management",
+        "university_of_professional_studies",
+        "central_university",
+        "ashesi_university",
+        "other"
+      ];
+      
+      const updateData = {
+        ...profileData,
+        institution: validInstitutions.includes(profileData.institution as any) 
+          ? profileData.institution as any 
+          : undefined
+      };
+      
       const { error } = await supabase
         .from('profiles')
-        .update(profileData)
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -265,32 +285,138 @@ const StudentDashboard = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
-              <TabsTrigger value="overview" className="flex items-center space-x-2">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-8">
+              <TabsTrigger value="overview" className="flex items-center space-x-1 lg:space-x-2">
                 <Activity className="h-4 w-4" />
-                <span>Overview</span>
+                <span className="hidden sm:inline">Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="bookings" className="flex items-center space-x-2">
+              <TabsTrigger value="bookings" className="flex items-center space-x-1 lg:space-x-2">
                 <Home className="h-4 w-4" />
-                <span>My Bookings</span>
+                <span className="hidden sm:inline">Bookings</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center space-x-2">
+              <TabsTrigger value="social" className="flex items-center space-x-1 lg:space-x-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center space-x-1 lg:space-x-2">
                 <BarChart3 className="h-4 w-4" />
-                <span>Analytics</span>
+                <span className="hidden sm:inline">Analytics</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center space-x-2">
+              <TabsTrigger value="profile" className="flex items-center space-x-1 lg:space-x-2">
                 <User className="h-4 w-4" />
-                <span>Profile</span>
+                <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <TabsTrigger value="settings" className="flex items-center space-x-1 lg:space-x-2">
                 <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
               <DashboardActivity userType="student" userId={user.id} />
+            </TabsContent>
+
+            {/* Social Tab */}
+            <TabsContent value="social" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Roommate Chat */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5" />
+                      Your Room Chats
+                    </CardTitle>
+                    <CardDescription>
+                      Chat with your confirmed roommates
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Room Chats Yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        You'll see chat rooms here once you book a room and it's confirmed.
+                      </p>
+                      <Button asChild variant="outline">
+                        <Link to="/search">Find Hostels</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Buddy System */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Buddy System
+                    </CardTitle>
+                    <CardDescription>
+                      Connect with compatible roommates and find your perfect living partner
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="text-center py-6">
+                        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Find Your Perfect Roommate</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Use our personality-based matching system to connect with compatible students
+                        </p>
+                        <div className="space-y-2">
+                          <Button asChild className="w-full">
+                            <Link to="/buddy-system">
+                              <Users className="h-4 w-4 mr-2" />
+                              Explore Buddy System
+                            </Link>
+                          </Button>
+                          <Button asChild variant="outline" className="w-full">
+                            <Link to="/personality-quiz">
+                              Take Personality Quiz
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t pt-4">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>Find roommates before booking</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span>Based on lifestyle compatibility</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Info Section */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <MessageCircle className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-blue-900 mb-2">How Social Features Work</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                        <div>
+                          <h4 className="font-medium mb-1">🏠 Roommate Chat</h4>
+                          <p>Private chat rooms for confirmed roommates in the same room. Perfect for coordinating move-in, sharing expenses, and daily communication.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-1">👥 Buddy System</h4>
+                          <p>Find compatible roommates before booking using personality matching. Connect with students who share your lifestyle and preferences.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Analytics Tab */}
