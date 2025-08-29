@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, MapPin, Home, User, Settings, CreditCard, Star, BarChart3, Activity, Users, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Home, User, Settings, CreditCard, Star, BarChart3, Activity, Users, MessageCircle, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import Navigation from '@/components/Navigation';
 import BackButton from '@/components/BackButton';
@@ -21,6 +21,7 @@ import { toast as sonnerToast } from 'sonner';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import DashboardActivity from '@/components/DashboardActivity';
 import RoomChatList from '@/components/RoomChatList';
+import { BookingReceipt } from '@/components/BookingReceipt';
 
 interface Booking {
   id: string;
@@ -52,6 +53,8 @@ const StudentDashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [profileData, setProfileData] = useState({
     full_name: profile?.full_name || '',
     phone_number: profile?.phone_number || '',
@@ -512,6 +515,17 @@ const StudentDashboard = () => {
                                {/* Action Buttons for Confirmed Bookings */}
                                {booking.booking_status === 'confirmed' && (
                                  <div className="mt-4 flex gap-2">
+                                   <Button 
+                                     size="sm" 
+                                     variant="outline"
+                                     onClick={() => {
+                                       setSelectedBooking(booking);
+                                       setShowReceipt(true);
+                                     }}
+                                   >
+                                     <Receipt className="h-4 w-4 mr-1" />
+                                     View Receipt
+                                   </Button>
                                    <Dialog>
                                      <DialogTrigger asChild>
                                        <Button size="sm" variant="outline">
@@ -677,6 +691,18 @@ const StudentDashboard = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Booking Receipt Modal */}
+      {selectedBooking && (
+        <BookingReceipt
+          isOpen={showReceipt}
+          onClose={() => {
+            setShowReceipt(false);
+            setSelectedBooking(null);
+          }}
+          booking={selectedBooking}
+        />
+      )}
     </div>
   );
 };

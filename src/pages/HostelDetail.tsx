@@ -16,6 +16,8 @@ import { useReviews, ReviewData } from "@/hooks/useReviews";
 import { ReviewCard } from "@/components/ReviewCard";
 import { ReviewsSummary } from "@/components/ReviewsSummary";
 import { QuickMessageButton } from "@/components/QuickMessageButton";
+import { RoomSelectionModal } from "@/components/RoomSelectionModal";
+import { BookingModal } from "@/components/BookingModal";
 
 interface Hostel {
   id: string;
@@ -57,6 +59,7 @@ const HostelDetail = () => {
   const [hostel, setHostel] = useState<Hostel | null>(null);
   const [reviews, setReviews] = useState<ReviewData[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showRoomSelectionModal, setShowRoomSelectionModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showHoldModal, setShowHoldModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -170,6 +173,21 @@ const HostelDetail = () => {
       }
     } catch (error) {
       // Error already handled in the hook
+    }
+  };
+
+  const handleRoomSelected = (room: Room) => {
+    setSelectedRoom(room);
+    setShowBookingModal(true);
+  };
+
+  const handleBookingComplete = () => {
+    setShowBookingModal(false);
+    setSelectedRoom(null);
+    // Refresh rooms data
+    if (id) {
+      // This will trigger a refresh of the rooms data
+      window.location.reload();
     }
   };
 
@@ -460,14 +478,10 @@ const HostelDetail = () => {
                     className="w-full" 
                     size="lg"
                     disabled={!user || profile?.user_type !== 'student' || hostel.available_rooms === 0}
-                    onClick={() => {
-                      if (rooms.length > 0) {
-                        handleBookRoom(rooms[0].id, rooms[0].price_per_semester, rooms[0].room_number);
-                      }
-                    }}
+                    onClick={() => setShowRoomSelectionModal(true)}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
-                    {bookingLoading ? "Booking..." : "Quick Book"}
+                    Select Room & Book
                   </Button>
                   <Button 
                     variant="outline" 
@@ -523,6 +537,26 @@ const HostelDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Room Selection Modal */}
+      <RoomSelectionModal
+        isOpen={showRoomSelectionModal}
+        onClose={() => setShowRoomSelectionModal(false)}
+        hostelId={id || ''}
+        hostelName={hostel?.name || ''}
+        onRoomSelected={handleRoomSelected}
+      />
+
+      {/* Booking Modal */}
+      {selectedRoom && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          room={selectedRoom}
+          hostelName={hostel?.name || ''}
+          onBookingComplete={handleBookingComplete}
+        />
+      )}
     </div>
   );
 };
